@@ -17,6 +17,7 @@
       "reconfigure": {
         "data": {
           "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?",
+          "include_virtual_devices": "Include virtual devices?",
           "password": "Password",
           "username": "Username"
         },
@@ -27,6 +28,7 @@
         "data": {
           "host": "Host",
           "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?",
+          "include_virtual_devices": "Include virtual devices?",
           "password": "Password",
           "username": "Username"
         },
@@ -37,6 +39,7 @@
         "data": {
           "host": "Host",
           "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?",
+          "include_virtual_devices": "Include virtual devices?",
           "password": "Password",
           "username": "Username"
         },

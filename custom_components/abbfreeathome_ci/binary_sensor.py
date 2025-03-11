@@ -8,6 +8,8 @@ from abbfreeathome.devices.movement_detector import MovementDetector
 from abbfreeathome.devices.rain_sensor import RainSensor
 from abbfreeathome.devices.smoke_detector import SmokeDetector
 from abbfreeathome.devices.temperature_sensor import TemperatureSensor
+
+# from abbfreeathome.devices.virtual.virtual_switch_actuator import VirtualSwitchActuator
 from abbfreeathome.devices.wind_sensor import WindSensor
 from abbfreeathome.devices.window_door_sensor import WindowDoorSensor
 from abbfreeathome.freeathome import FreeAtHome
@@ -89,6 +91,14 @@ SENSOR_DESCRIPTIONS = {
             "translation_key": "wind_sensor",
         },
     },
+    #    "VirtualSwitchActuatorOnOff": {
+    #        "device_class": VirtualSwitchActuator,
+    #        "value_attribute": "requested_state",
+    #        "entity_description_kwargs": {
+    #            "device_class": BinarySensorDeviceClass.RUNNING,
+    #            "translation_key": "virtual_switch_onoff",
+    #        },
+    #    },
 }
 
 

@@ -8,7 +8,8 @@
           "host": "[%key:common::config_flow::data::host%]",
           "username": "[%key:common::config_flow::data::username%]",
           "password": "[%key:common::config_flow::data::password%]",
-          "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?"
+          "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?",
+          "include_virtual_devices": "Include virtual devices?"
         }
       },
       "zeroconf_confirm": {
@@ -18,7 +19,8 @@
           "host": "[%key:common::config_flow::data::host%]",
           "username": "[%key:common::config_flow::data::username%]",
           "password": "[%key:common::config_flow::data::password%]",
-          "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?"
+          "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?",
+          "include_virtual_devices": "Include virtual devices?"
         }
       },
       "reconfigure": {
@@ -27,7 +29,8 @@
         "data": {
           "username": "[%key:common::config_flow::data::username%]",
           "password": "[%key:common::config_flow::data::password%]",
-          "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?"
+          "include_orphan_channels": "Include channels NOT on the ABB-free@home floorplan?",
+          "include_virtual_devices": "Include virtual devices?"
         }
       }
     },

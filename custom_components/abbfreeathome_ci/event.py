@@ -14,6 +14,7 @@ from abbfreeathome.devices.switch_sensor import (
     SwitchSensor,
     SwitchSensorState,
 )
+from abbfreeathome.devices.virtual.virtual_switch_actuator import VirtualSwitchActuator
 from abbfreeathome.freeathome import FreeAtHome
 
 from homeassistant.components.event import (
@@ -32,6 +33,7 @@ EVENT_DESCRIPTIONS = {
     "EventBlindSensorState": {
         "device_class": BlindSensor,
         "event_type_callback": lambda state: state,
+        "state_attribute": "state",
         "entity_description_kwargs": {
             "device_class": EventDeviceClass.BUTTON,
             "event_types": [state.name for state in BlindSensorState],
@@ -41,6 +43,7 @@ EVENT_DESCRIPTIONS = {
     "EventDesDoorRingingSensorActivated": {
         "device_class": DesDoorRingingSensor,
         "event_type_callback": lambda: "activated",
+        "state_attribute": "",
         "entity_description_kwargs": {
             "device_class": EventDeviceClass.BUTTON,
             "event_types": ["activated"],
@@ -50,6 +53,7 @@ EVENT_DESCRIPTIONS = {
     "EventDimmingSensorState": {
         "device_class": DimmingSensor,
         "event_type_callback": lambda state: state,
+        "state_attribute": "state",
         "entity_description_kwargs": {
             "device_class": EventDeviceClass.BUTTON,
             "event_types": list(
@@ -64,6 +68,7 @@ EVENT_DESCRIPTIONS = {
     "EventForceOnOffSensorOnOff": {
         "device_class": ForceOnOffSensor,
         "event_type_callback": lambda state: state,
+        "state_attribute": "state",
         "entity_description_kwargs": {
             "device_class": EventDeviceClass.BUTTON,
             "event_types": [state.name for state in ForceOnOffSensorState],
@@ -73,10 +78,23 @@ EVENT_DESCRIPTIONS = {
     "EventSwitchSensorOnOff": {
         "device_class": SwitchSensor,
         "event_type_callback": lambda state: state,
+        "state_attribute": "state",
         "entity_description_kwargs": {
             "device_class": EventDeviceClass.BUTTON,
             "event_types": [state.name for state in SwitchSensorState],
             "translation_key": "switch_sensor",
+        },
+    },
+    "EventVirtualSwitchActuatorOnOff": {
+        "device_class": VirtualSwitchActuator,
+        "event_type_callback": lambda requested_state: "On"
+        if requested_state
+        else "Off",
+        "state_attribute": "requested_state",
+        "entity_description_kwargs": {
+            "device_class": EventDeviceClass.BUTTON,
+            "event_types": ["On", "Off"],
+            "translation_key": "virtual_switch_actuator_onoff",
         },
     },
 }
@@ -94,6 +112,7 @@ async def async_setup_entry(
         async_add_entities(
             FreeAtHomeEventEntity(
                 device,
+                state_attribute=description.get("state_attribute"),
                 entity_description_kwargs={"key": key}
                 | description.get("entity_description_kwargs"),
                 sysap_serial_number=entry.data[CONF_SERIAL],
@@ -111,6 +130,7 @@ class FreeAtHomeEventEntity(EventEntity):
     def __init__(
         self,
         device: SwitchSensor,
+        state_attribute: str,
         entity_description_kwargs: dict[str:Any],
         sysap_serial_number: str,
         event_type_callback: callback,
@@ -118,6 +138,7 @@ class FreeAtHomeEventEntity(EventEntity):
         """Initialize the sensor."""
         super().__init__()
         self._device = device
+        self._state_attribute = state_attribute
         self._sysap_serial_number = sysap_serial_number
         self._event_type_callback = event_type_callback
 
@@ -132,8 +153,10 @@ class FreeAtHomeEventEntity(EventEntity):
     def _async_handle_event(self) -> None:
         """Handle the demo button event."""
 
-        if hasattr(self._device, "state"):
-            event_type = self._event_type_callback(self._device.state)
+        if hasattr(self._device, self._state_attribute):
+            event_type = self._event_type_callback(
+                getattr(self._device, self._state_attribute)
+            )
         else:
             event_type = self._event_type_callback()
 

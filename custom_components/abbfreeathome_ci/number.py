@@ -1,18 +1,15 @@
-"""Create ABB-free@home switch entities."""
+"""Create ABB-free@home number entities."""
 
 from typing import Any
 
-from abbfreeathome.devices.switch_actuator import SwitchActuator
-from abbfreeathome.devices.virtual.virtual_switch_actuator import VirtualSwitchActuator
-from abbfreeathome.devices.virtual.virtual_window_door_sensor import (
-    VirtualWindowDoorSensor,
-)
+from abbfreeathome.devices.temperature_sensor import VirtualTemperatureSensor
 from abbfreeathome.freeathome import FreeAtHome
 
-from homeassistant.components.switch import (
-    SwitchDeviceClass,
-    SwitchEntity,
-    SwitchEntityDescription,
+from homeassistant.components.number import (
+    NumberDeviceClass,
+    NumberEntity,
+    NumberEntityDescription,
+    NumberMode,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -21,26 +18,17 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_SERIAL, DOMAIN
 
-SWITCH_DESCRIPTIONS = {
-    "SwitchActuator": {
-        "device_class": SwitchActuator,
+NUMBER_DESCRIPTIONS = {
+    "VirtualTemperatureSensorTemperature": {
+        "device_class": VirtualTemperatureSensor,
         "value_attribute": "state",
         "entity_description_kwargs": {
-            "device_class": SwitchDeviceClass.SWITCH,
-        },
-    },
-    "VirtualSwitchActuatorOnOff": {
-        "device_class": VirtualSwitchActuator,
-        "value_attribute": "state",
-        "entity_description_kwargs": {
-            "device_class": SwitchDeviceClass.SWITCH,
-        },
-    },
-    "VirtualWindowDoorSensorOnOff": {
-        "device_class": VirtualWindowDoorSensor,
-        "value_attribute": "state",
-        "entity_description_kwargs": {
-            "device_class": SwitchDeviceClass.SWITCH,
+            "device_class": NumberDeviceClass.TEMPERATURE,
+            "mode": NumberMode.AUTO,
+            "native_max_value": 100,
+            "native_min_value": -100,
+            "native_step": 0.01,
+            "native_unit_of_measurement": "°C",
         },
     },
 }
@@ -51,12 +39,12 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up switches."""
+    """Set up numbers."""
     free_at_home: FreeAtHome = hass.data[DOMAIN][entry.entry_id]
 
-    for key, description in SWITCH_DESCRIPTIONS.items():
+    for key, description in NUMBER_DESCRIPTIONS.items():
         async_add_entities(
-            FreeAtHomeSwitchEntity(
+            FreeAtHomeNumberEntity(
                 device,
                 value_attribute=description.get("value_attribute"),
                 entity_description_kwargs={"key": key}
@@ -70,27 +58,32 @@ async def async_setup_entry(
         )
 
 
-class FreeAtHomeSwitchEntity(SwitchEntity):
-    """Defines a free@home switch entity."""
+class FreeAtHomeNumberEntity(NumberEntity):
+    """Defines a free@home number entity."""
 
     _attr_should_poll: bool = False
 
     def __init__(
         self,
-        device: SwitchActuator | VirtualWindowDoorSensor,
+        device: VirtualTemperatureSensor,
         value_attribute: str,
         entity_description_kwargs: dict[str:Any],
         sysap_serial_number: str,
     ) -> None:
-        """Initialize the sensor."""
+        """Initialize the number."""
         super().__init__()
         self._device = device
         self._value_attribute = value_attribute
         self._sysap_serial_number = sysap_serial_number
 
-        self.entity_description = SwitchEntityDescription(
+        self.entity_description = NumberEntityDescription(
+            has_entity_name=True,
             name=device.channel_name,
-            **entity_description_kwargs,
+            translation_placeholders={
+                "channel_id": device.channel_id,
+                "channel_name": device.channel_name,
+            },
+            native_value=getattr**entity_description_kwargs,
         )
 
     async def async_added_to_hass(self) -> None:
@@ -114,23 +107,15 @@ class FreeAtHomeSwitchEntity(SwitchEntity):
         }
 
     @property
-    def is_on(self) -> bool | None:
-        """Return state of the switch."""
-        return self._device.state
+    def native_value(self) -> float | None:
+        """Return state of the sensor."""
+        return getattr(self._device, self._value_attribute)
 
     @property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
-        return f"{self._device.device_id}_{self._device.channel_id}_switch"
+        return f"{self._device.device_id}_{self._device.channel_id}_{self.entity_description.key}"
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
-        await self._device.turn_on()
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
-        await self._device.turn_off()
-
-    async def async_update(self, **kwargs: Any) -> None:
-        """Update the switch state."""
-        await self._device.refresh_state()
+    async def async_set_native_value(self, value: float) -> None:
+        """Set the native value."""
+        await self._device.set_value(value)
